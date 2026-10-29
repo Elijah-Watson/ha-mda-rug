@@ -1,0 +1,33 @@
+{
+  "title": "MDA Rug",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add an MDA rug",
+        "description": "Enter the Bluetooth MAC from the MDA app. You can save it before an adapter is available; setup will retry when Bluetooth can reach the rug. This version supports controller product 0x00AD. Color and dimming still need visual testing.",
+        "data": {"name": "Name", "address": "Bluetooth MAC address"}
+      },
+      "confirm": {
+        "title": "MDA-compatible rug found",
+        "description": "Set up the controller at {address}? Confirm that this is your MDA rug. Shared controller hardware may also appear in other lights. Color and dimming still need visual testing."
+      }
+    },
+    "error": {
+      "invalid_address": "Enter a 12-digit Bluetooth MAC address, with or without colons.",
+      "unsupported_device": "This device does not advertise the supported MDA 0x00AD controller profile."
+    },
+    "abort": {
+      "already_configured": "This rug is already configured.",
+      "unsupported_device": "This is not the supported MDA controller profile."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Scene speed",
+        "description": "Speed from 1 (slow) to 100 (fast). Applied the next time you select a scene.",
+        "data": {"effect_speed": "Effect speed"}
+      }
+    }
+  }
+}
