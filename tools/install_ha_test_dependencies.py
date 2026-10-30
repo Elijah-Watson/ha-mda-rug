@@ -8,8 +8,16 @@ from pathlib import Path
 import homeassistant
 
 components = Path(homeassistant.__file__).parent / "components"
-requirements = []
-for domain in ("usb", "bluetooth"):
+requirements = set()
+pending = ["bluetooth", "light"]
+visited = set()
+while pending:
+    domain = pending.pop()
+    if domain in visited:
+        continue
+    visited.add(domain)
     manifest = json.loads((components / domain / "manifest.json").read_text())
-    requirements.extend(manifest.get("requirements", []))
-subprocess.check_call([sys.executable, "-m", "pip", "install", *requirements])
+    requirements.update(manifest.get("requirements", []))
+    pending.extend(manifest.get("dependencies", []))
+    pending.extend(manifest.get("after_dependencies", []))
+subprocess.check_call([sys.executable, "-m", "pip", "install", *sorted(requirements)])
