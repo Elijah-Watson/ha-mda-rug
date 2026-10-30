@@ -28,12 +28,12 @@ async def main(args):
     phases = [
         ("OFF", [protocol.power(False)]),
         ("ON (previous scene)", [protocol.power(True)]),
-        ("RED at 30%", [protocol.color(0, 100, 30)]),
-        ("GREEN at 30%", [protocol.color(120, 100, 30)]),
-        ("BLUE at 30%", [protocol.color(240, 100, 30)]),
-        ("BLUE dimmed to 10%", [protocol.brightness(10)]),
-        ("BLUE brightened to 70%", [protocol.brightness(70)]),
-        *[(name, [protocol.scene(name, 30)]) for name in protocol.SCENES],
+        ("RED at 30%", [protocol.color(0, 100, 30, args.color_order)]),
+        ("GREEN at 30%", [protocol.color(120, 100, 30, args.color_order)]),
+        ("BLUE at 30%", [protocol.color(240, 100, 30, args.color_order)]),
+        ("BLUE dimmed to 10%", [protocol.color(240, 100, 10, args.color_order)]),
+        ("BLUE brightened to 70%", [protocol.color(240, 100, 70, args.color_order)]),
+        *[(name, [protocol.scene(name, 30, args.color_order, 30)]) for name in protocol.SCENES],
     ]
     connection = await establish_connection(BleakClientWithServiceCache, device, "MDA visual test")
     try:
@@ -72,5 +72,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--address", required=True)
     parser.add_argument("--hold", type=float, default=10)
+    parser.add_argument("--color-order", choices=["RGB", "BGR"], default="BGR")
     parser.add_argument("--output", default="captures/visual-test.json")
     asyncio.run(main(parser.parse_args()))

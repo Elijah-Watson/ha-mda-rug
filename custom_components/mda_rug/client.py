@@ -108,6 +108,9 @@ class RugClient:
                         or state.speed != expected[8]
                     ):
                         raise RugError("The rug did not report the requested scene and speed")
+                if any(p[:2] == b"\x3b\xa1" for p in payloads):
+                    if state.mode != 0x25 or state.mode_id != 110:
+                        raise RugError("The rug did not report solid-color mode")
                 return state
             finally:
                 await client.disconnect()

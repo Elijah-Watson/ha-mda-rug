@@ -124,3 +124,20 @@ Emulation remains possible: Android now supports virtual BLE, and
 That needs additional radio bridging setup; an emulator's virtual BLE support alone
 is not automatic passthrough to the Windows Intel radio. Direct PC BLE testing avoided
 that setup here. Phone APK extraction was not required.
+
+## Visual calibration — October 29, 2026
+
+The first observed sequence changed the rug but did not match the requested colors.
+One-command-at-a-time testing then established:
+
+- Power on/off worked visually.
+- Raw hue 0 produced uniform blue; hue 120 green; hue 240 red.
+- Software BGR correction (`wire_hue = (240 - requested_hue) % 360`) produced
+  the requested red and blue; green is unchanged.
+- Standalone `3B 01` brightness had no visible effect.
+- Resending `3B A1` with value 10 visibly dimmed the red light; value 70 visibly
+  brightened it while retaining red. The HA light now resends color for dimming.
+- The software correction also applies to scene palette hues. It does not write
+  controller color-order, wiring, or persistent hardware configuration.
+
+Earlier notes above describe the initial unobserved tests, not the final calibrated behavior.

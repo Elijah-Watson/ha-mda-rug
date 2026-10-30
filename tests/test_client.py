@@ -32,6 +32,8 @@ class FakeBle:
                 self.state[14] = payload[1]
             elif payload[:2] == b"\xe1\x01":
                 self.state[15:18] = bytes([0x25, payload[4], payload[8]])
+            elif payload[:2] == b"\x3b\xa1":
+                self.state[15:17] = bytes([0x25, 110])
 
 
 @pytest.fixture
@@ -87,6 +89,19 @@ async def test_ignored_scene_is_failure(connected, protocol, client_module_fixtu
     fake.ignore_controls = True
     with pytest.raises(client_module_fixture.RugError, match="scene"):
         await client.execute([protocol.scene("Party")])
+
+
+async def test_ignored_solid_color_is_failure(connected, protocol, client_module_fixture):
+    fake, _, client = connected
+    fake.ignore_controls = True
+    with pytest.raises(client_module_fixture.RugError, match="solid-color mode"):
+        await client.execute([protocol.color(0, 100, 30, "BGR")])
+
+
+async def test_solid_color_mode_is_confirmed(connected, protocol):
+    _, _, client = connected
+    state = await client.execute([protocol.color(0, 100, 30, "BGR")])
+    assert state.mode_id == 110
 
 
 async def test_write_error_disconnects(connected, monkeypatch, client_module_fixture):

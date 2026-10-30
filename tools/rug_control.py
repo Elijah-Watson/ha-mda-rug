@@ -40,15 +40,13 @@ async def main(args):
         if args.action == "scenes-test":
             commands = [("on", protocol.power(True))]
             for name in protocol.SCENES:
-                commands.extend(
-                    [(name, protocol.scene(name, 30)), ("brightness25", protocol.brightness(25))]
-                )
+                commands.extend([(name, protocol.scene(name, 30, "BGR", 25))])
             commands.append(("off", protocol.power(False)))
         elif args.action == "color-test":
             commands = [
                 ("on", protocol.power(True)),
-                ("red", protocol.color(0, 100, 30)),
-                ("blue", protocol.color(240, 100, 20)),
+                ("red", protocol.color(0, 100, 30, "BGR")),
+                ("blue", protocol.color(240, 100, 20, "BGR")),
                 ("off", protocol.power(False)),
             ]
         else:

@@ -13,8 +13,16 @@ def main():
     output = root / "dist"
     output.mkdir(exist_ok=True)
     target = output / f"mda_rug-{version}.zip"
-    files = [p for p in component.rglob("*") if p.is_file() and p.suffix in (".py", ".json", ".png")]
-    files += [root / "README.md", root / "LICENSE", root / "THIRD_PARTY_NOTICES.md", root / "research/PROTOCOL.md"]
+    files = [
+        p for p in component.rglob("*") if p.is_file() and p.suffix in (".py", ".json", ".png")
+    ]
+    files += [
+        root / "README.md",
+        root / "LICENSE",
+        root / "THIRD_PARTY_NOTICES.md",
+        root / "research/PROTOCOL.md",
+        root / "research/CALIBRATION.md",
+    ]
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(files):
             archive.write(path, path.relative_to(root).as_posix())

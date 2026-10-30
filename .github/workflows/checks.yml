@@ -22,6 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: home-assistant/actions/hassfest@master
+  home-assistant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: pip install homeassistant==2026.10.4 pytest pytest-asyncio
+      - run: python -m pytest tests/test_homeassistant.py -q
   hacs:
     runs-on: ubuntu-latest
     steps:

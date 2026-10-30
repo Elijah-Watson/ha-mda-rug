@@ -4,9 +4,9 @@ A small local integration for the MDA Rugs LED rug tested on October 29, 2026.
 It creates one light entity and uses Home Assistant's existing Bluetooth integration.
 No cloud account, MQTT broker, emulator, or running phone app is required.
 
-**Version 0.1.0: power and three scenes are confirmed by real rug status replies.
-Color and dimming are experimental and still need visual testing.**
-The Home Assistant wrapper has not yet been installed or tested inside HA.
+**Version 0.1.1: power and corrected solid colors are visually verified on the tested rug.
+Solid-color dimming works by resending the color with its brightness.**
+Scene names are provisional palettes and do not claim to match the MDA app exactly.
 
 ## Supported controller
 
@@ -24,13 +24,15 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 
 | Feature | Status |
 | --- | --- |
-| On/off | Confirmed through status replies on the physical rug |
+| On/off | Visually confirmed and verified through physical rug status replies |
 | Game, Party, Northern Lights | Scene IDs and speed confirmed through status replies |
 | Effect speed | Encoded in the tested scene format; configurable from 1–100 |
-| Solid HS color | Enters solid mode in status; actual color still needs visual testing |
-| Brightness | BLE writes accepted, but brightness is not confirmed by status; needs visual testing |
+| Solid HS color | Primary colors visually calibrated; BGR correction swaps red/blue in software |
+| Brightness | Solid colors: 10% to 70% change visually confirmed; standalone dimming command is ignored |
+| Scene brightness | Northern Lights at 10% looked dim and blue/green; 70% comparison and other scene dimming remain provisional |
 | Power changes made with the app | Advertisement parser included; HA callback path not tested live |
-| HA installation, discovery, restore, proxies | Implemented; runtime validation pending |
+| HA installation and manual setup | HACS installation and config flow verified on HA 2026.10.4; entry retries while no adapter sees the rug |
+| HA discovery, light entity, restore, proxies | Requires end-to-end validation once an adapter is available |
 
 Scene names and palettes come from published Magic Hue/Zengge interoperability captures;
 they have not been matched against every scene name in MDA's app. This is a three-scene
@@ -62,7 +64,7 @@ To remove it, delete the integration entry in Settings, remove its HACS download
 and restart Home Assistant.
 
 Automatic Bluetooth discovery is also supported. Options for the integration let you
-change the speed used the next time you select a scene.
+change scene speed and the software color correction (BGR by default, RGB if no correction is needed).
 
 The integration relies on HA's shared scanner and nearest connectable device lookup.
 It connects for an action, subscribes, verifies identity/state, sends commands, reads status,
@@ -86,9 +88,11 @@ data:
   effect: Northern Lights
 ```
 
-For the first visual test, try red at 30%, blue at 20%, then a scene. If color or brightness
-is wrong, record the exact action and visible result. Those two features are experimental;
-we can capture the corresponding MDA app commands to resolve differences.
+The tested controller displays raw red as blue and raw blue as red. BGR correction fixes
+that in outgoing solid colors and scene palettes; it does not change wiring settings.
+Brightness changes resend the selected color or palette. Select a color or scene in HA
+before dimming if HA does not know the current selection (for example after app control).
+Scene brightness changes may restart the animation.
 
 ## Restricted command surface
 
@@ -96,8 +100,8 @@ All integration writes go to the lighting characteristic FF01. The transport val
 the entire command batch before connecting. Only these payloads are accepted:
 
 - Status query `EA 81 8A 8B`.
-- Precisely structured `3B` power, solid-color, and brightness commands.
-- Exact `E1 01` scene templates with a bounded speed.
+- Precisely structured `3B` power and solid-color commands, with brightness inside the color command.
+- Exact `E1 01` scene templates with bounded speed and palette intensity.
 
 There is no firmware updater, reset, pairing-key change, raw-command service, wiring setup,
 LED-count change, or hardware-configuration control. No writes are made to the separate
@@ -127,3 +131,5 @@ Read-only discovery and GATT inspection:
 the previous scene. Use those only when you are ready to observe the rug.
 
 See [research/PROTOCOL.md](research/PROTOCOL.md) for findings, exact packets, and sources.
+See [research/CALIBRATION.md](research/CALIBRATION.md) for the visual results,
+closely matching firmware reference, and remaining uncertainties.

@@ -53,28 +53,39 @@ def power(on: bool) -> bytes:
     return checksum(bytes([0x3B, 0x23 if on else 0x24]) + bytes(10))
 
 
-def color(hue: float, saturation: float, brightness: int) -> bytes:
+def mapped_hue(hue: float, color_order: str) -> float:
+    """Swap red and blue in software, preserving saturation and intensity."""
+    if color_order not in ("RGB", "BGR"):
+        raise ValueError("Color order must be RGB or BGR")
+    return (240 - hue) % 360 if color_order == "BGR" else hue
+
+
+def color(hue: float, saturation: float, brightness: int, color_order: str = "RGB") -> bytes:
     if not math.isfinite(hue) or not 0 <= hue <= 360:
         raise ValueError("Hue must be in 0..360")
     if not math.isfinite(saturation) or not 0 <= saturation <= 100:
         raise ValueError("Saturation must be in 0..100")
-    packed = (round(hue) << 7) | round(saturation)
+    packed = (round(mapped_hue(hue, color_order)) << 7) | round(saturation)
     value = bounded(brightness, 1, 100)
     return checksum(bytes([0x3B, 0xA1, packed >> 8, packed & 255, value]) + bytes(7))
 
 
-def brightness(percent: int) -> bytes:
-    value = bounded(percent, 1, 100)
-    return checksum(bytes([0x3B, 1, 0, 0, value, 0, value]) + bytes(5))
-
-
-def scene(name: str, speed: int = 50) -> bytes:
+def scene(name: str, speed: int = 50, color_order: str = "RGB", brightness: int = 100) -> bytes:
     scene_id, mode, direction, palette = SCENES[name]
     speed = bounded(speed, 1, 100)
+    brightness = bounded(brightness, 1, 100)
     data = bytes(
         [0xE1, 1, 0, 100, scene_id, mode, direction, 100, speed, 0, 0xA1, 0, 0, 0, len(palette)]
     )
-    return data + b"".join(bytes([0xA1, *entry]) for entry in palette)
+    entries = []
+    for hi, lo, value in palette:
+        packed = (hi << 8) | lo
+        hue, saturation = packed >> 7, packed & 127
+        mapped = (round(mapped_hue(hue, color_order)) << 7) | saturation
+        entries.append(
+            bytes([0xA1, mapped >> 8, mapped & 255, max(1, round(value * brightness / 100))])
+        )
+    return data + b"".join(entries)
 
 
 def query() -> bytes:
@@ -92,12 +103,20 @@ def validate_payload(payload: bytes) -> None:
             packed = int.from_bytes(payload[2:4], "big")
             if packed >> 7 <= 360 and packed & 127 <= 100 and 1 <= payload[4] <= 100:
                 return
-        if payload[1] == 1 and payload[2:4] == bytes(2) and payload[5] == 0:
-            if payload[4] == payload[6] and 1 <= payload[4] <= 100 and payload[7:12] == bytes(5):
-                return
     if len(payload) >= 15 and 1 <= payload[8] <= 100:
-        if any(payload == scene(name, payload[8]) for name in SCENES):
-            return
+        for name in SCENES:
+            for order in ("RGB", "BGR"):
+                template = scene(name, payload[8], order)
+                if len(payload) != len(template):
+                    continue
+                # Only palette intensity bytes may vary; headers, colors, and modes are fixed.
+                if all(
+                    1 <= value <= 100
+                    if index >= 18 and (index - 18) % 4 == 0
+                    else value == template[index]
+                    for index, value in enumerate(payload)
+                ):
+                    return
     raise ValueError("Unsupported payload: only status and known lighting commands are allowed")
 
 

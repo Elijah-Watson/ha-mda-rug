@@ -4,12 +4,15 @@
     "step": {
       "user": {
         "title": "Add an MDA rug",
-        "description": "Enter the Bluetooth MAC from the MDA app. You can save it before an adapter is available; setup will retry when Bluetooth can reach the rug. This version supports controller product 0x00AD. Color and dimming still need visual testing.",
-        "data": {"name": "Name", "address": "Bluetooth MAC address"}
+        "description": "Enter the Bluetooth MAC from the MDA app. You can save it before an adapter is available; setup will retry when Bluetooth can reach the rug. This version supports controller product 0x00AD. The default color correction swaps red and blue in software; change it in integration options if needed.",
+        "data": {
+          "name": "Name",
+          "address": "Bluetooth MAC address"
+        }
       },
       "confirm": {
         "title": "MDA-compatible rug found",
-        "description": "Set up the controller at {address}? Confirm that this is your MDA rug. Shared controller hardware may also appear in other lights. Color and dimming still need visual testing."
+        "description": "Set up the controller at {address}? Confirm that this is your MDA rug. Shared controller hardware may also appear in other lights. The default color correction swaps red and blue in software; change it in integration options if needed."
       }
     },
     "error": {
@@ -24,9 +27,12 @@
   "options": {
     "step": {
       "init": {
-        "title": "Scene speed",
-        "description": "Speed from 1 (slow) to 100 (fast). Applied the next time you select a scene.",
-        "data": {"effect_speed": "Effect speed"}
+        "title": "Rug lighting options",
+        "description": "BGR corrects the red/blue swap observed on the tested rug. RGB sends colors unchanged. These options do not change controller hardware settings. Scene speed applies when a scene is selected.",
+        "data": {
+          "effect_speed": "Effect speed",
+          "color_order": "Color correction (BGR swaps red and blue; RGB unchanged)"
+        }
       }
     }
   }
