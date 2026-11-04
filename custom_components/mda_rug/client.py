@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 
 from bleak import BleakClient, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
@@ -18,9 +18,11 @@ class RugError(Exception):
 class RugClient:
     """Connect on demand, verify the controller, write, query, and disconnect."""
 
-    def __init__(self, get_device: Callable[[], BLEDevice | None], name: str):
+    def __init__(self, get_device: Callable[[], BLEDevice | None], name: str, speed: int = 50):
         self.get_device = get_device
         self.name = name
+        self.speed = speed
+        self.on_speed_change: Callable[[int], Awaitable[None]] | None = None
         self.state: protocol.State | None = None
         self._lock = asyncio.Lock()
         self._event = asyncio.Event()

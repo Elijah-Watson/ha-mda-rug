@@ -7,34 +7,13 @@ No firmware, reset, wiring, LED-count, or persistent hardware-setting commands.
 import math
 from dataclasses import dataclass
 
+from .scenes import SCENES
+
 WRITE_UUID = "0000ff01-0000-1000-8000-00805f9b34fb"
 NOTIFY_UUID = "0000ff02-0000-1000-8000-00805f9b34fb"
 SERVICE_DATA_UUID = "00005a00-0000-1000-8000-00805f9b34fb"
 PRODUCT_ID = 0x00AD
-
-# Three palettes from the published LEDnetWF IOTBT scene captures (issue #83).
-# Fields are scene ID, mode, direction, and packed hue/saturation/value triples.
-SCENES = {
-    "Game": (
-        1,
-        0,
-        1,
-        ((0x58, 0xDE, 0x61), (0x3C, 0x64, 0x64), (0x68, 0xE4, 0x64), (0x96, 0x64, 0x64)),
-    ),
-    "Party": (
-        3,
-        0,
-        1,
-        (
-            (0x0C, 0x64, 0x64),
-            (0x1E, 0x64, 0x64),
-            (0x5A, 0x64, 0x64),
-            (0x6C, 0xE4, 0x64),
-            (0x96, 0x64, 0x64),
-        ),
-    ),
-    "Northern Lights": (2, 0, 1, ((0x70, 0xE4, 0x64), (0x5F, 0xE4, 0x64), (0x47, 0xE4, 0x64))),
-}
+SOLID_MODE_ID = 110
 
 
 def bounded(value: int, minimum: int, maximum: int) -> int:

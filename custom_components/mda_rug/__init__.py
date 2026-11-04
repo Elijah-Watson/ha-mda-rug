@@ -8,9 +8,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .client import RugClient, RugError
+from .const import CONF_SPEED, DEFAULT_SPEED
 from .protocol import matches
 
-PLATFORMS = [Platform.LIGHT]
+PLATFORMS = [Platform.LIGHT, Platform.NUMBER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -23,6 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = RugClient(
         lambda: bluetooth.async_ble_device_from_address(hass, address, connectable=True),
         entry.title,
+        entry.options.get(CONF_SPEED, DEFAULT_SPEED),
     )
     try:
         await client.execute()

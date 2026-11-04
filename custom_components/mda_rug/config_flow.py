@@ -8,7 +8,7 @@ from homeassistant.components import bluetooth
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import callback
 
-from .const import CONF_COLOR_ORDER, CONF_SPEED, DEFAULT_COLOR_ORDER, DEFAULT_SPEED, DOMAIN
+from .const import CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER, DOMAIN
 from .protocol import matches
 
 
@@ -89,9 +89,6 @@ class MdaRugOptionsFlow(config_entries.OptionsFlow):
                             CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER
                         ),
                     ): vol.In(["BGR", "RGB"]),
-                    vol.Required(
-                        CONF_SPEED, default=self.config_entry.options.get(CONF_SPEED, DEFAULT_SPEED)
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
                 }
             ),
         )

@@ -1,4 +1,4 @@
-"""One HA light with power, HS color, brightness, and three scene palettes."""
+"""One HA light with power, HS color, brightness, and the captured scene palettes."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_EFFECT,
     ATTR_HS_COLOR,
+    EFFECT_OFF,
     ColorMode,
     LightEntity,
     LightEntityFeature,
@@ -20,9 +21,23 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import protocol
 from .client import RugError
-from .const import CONF_COLOR_ORDER, CONF_SPEED, DEFAULT_COLOR_ORDER, DEFAULT_SPEED, DOMAIN
+from .const import CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER, DOMAIN
 
 PARALLEL_UPDATES = 1
+WHITE = (0, 0)
+
+
+def _percent(value: int) -> int:
+    return max(1, round(protocol.bounded(value, 1, 255) * 100 / 255))
+
+
+def _mode_id(effect: str | None) -> int | None:
+    """The status reply's mode ID for a selection, or None when nothing is selected."""
+    if effect == EFFECT_OFF:
+        return protocol.SOLID_MODE_ID
+    if effect in protocol.SCENES:
+        return protocol.SCENES[effect][0]
+    return None
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -32,14 +47,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class MdaRugLight(LightEntity, RestoreEntity):
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_translation_key = "rug"
     _attr_should_poll = False
-    _attr_assumed_state = True  # Color/brightness are last requested values.
-    _attr_color_mode = ColorMode.HS
     _attr_supported_features = LightEntityFeature.EFFECT
 
     def __init__(self, entry):
         self._attr_supported_color_modes = {ColorMode.HS}
-        self._attr_effect_list = ["Solid", *protocol.SCENES]
+        self._attr_effect_list = [EFFECT_OFF, *protocol.SCENES]
         self._entry = entry
         self._client = entry.runtime_data
         self._address = entry.data[CONF_ADDRESS]
@@ -49,9 +63,7 @@ class MdaRugLight(LightEntity, RestoreEntity):
         self._attr_hs_color = None
         self._attr_brightness = None
         self._attr_effect = None
-        self._attr_extra_state_attributes = {
-            "color_correction": entry.options.get(CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER)
-        }
+        self._attr_extra_state_attributes = {"color_correction": self._color_order}
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._address)},
             connections={(CONNECTION_BLUETOOTH, self._address)},
@@ -59,6 +71,15 @@ class MdaRugLight(LightEntity, RestoreEntity):
             model="LED rug (0x00AD)",
             name=entry.title,
         )
+
+    @property
+    def _color_order(self) -> str:
+        return self._entry.options.get(CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER)
+
+    @property
+    def color_mode(self) -> ColorMode:
+        # A scene owns its colors, so only brightness can be adjusted while one runs.
+        return ColorMode.BRIGHTNESS if self._attr_effect in protocol.SCENES else ColorMode.HS
 
     async def async_added_to_hass(self):
         await super().async_added_to_hass()
@@ -81,17 +102,18 @@ class MdaRugLight(LightEntity, RestoreEntity):
             if isinstance(value, int) and 1 <= value <= 255:
                 self._attr_brightness = value
             effect = attrs.get(ATTR_EFFECT)
-            if effect in self._attr_effect_list:
-                expected = 110 if effect == "Solid" else protocol.SCENES[effect][0]
-                current = self._client.state
-                if current.mode == 0x25 and current.mode_id == expected:
-                    self._attr_effect = effect
-                else:
-                    self._attr_hs_color = None
-                    self._attr_brightness = None
+            current = self._client.state
+            if (
+                effect in self._attr_effect_list
+                and current.mode == 0x25
+                and current.mode_id == _mode_id(effect)
+            ):
+                self._attr_effect = effect
             else:
                 self._attr_hs_color = None
                 self._attr_brightness = None
+        self._client.on_speed_change = self.async_apply_speed
+        self.async_on_remove(self._clear_speed_listener)
         self.async_on_remove(
             bluetooth.async_register_callback(
                 self.hass,
@@ -110,6 +132,10 @@ class MdaRugLight(LightEntity, RestoreEntity):
         )
 
     @callback
+    def _clear_speed_listener(self):
+        self._client.on_speed_change = None
+
+    @callback
     def _advertisement(self, info, change):
         if not protocol.matches(info.service_data, self._address):
             return
@@ -118,14 +144,7 @@ class MdaRugLight(LightEntity, RestoreEntity):
         if len(data) == 27 and data[0] == 0x80 and data[1] in (0x23, 0x24):
             self._attr_is_on = data[1] == 0x23
             # If another controller selects a different mode, discard our stale label/color.
-            effect = self._attr_effect
-            expected = (
-                110
-                if effect == "Solid"
-                else protocol.SCENES[effect][0]
-                if effect in protocol.SCENES
-                else None
-            )
+            expected = _mode_id(self._attr_effect)
             if expected is not None and (data[2] != 0x25 or data[3] != expected):
                 self._attr_effect = None
                 self._attr_hs_color = None
@@ -141,49 +160,50 @@ class MdaRugLight(LightEntity, RestoreEntity):
         try:
             state = await self._client.execute(commands)
         except (BleakError, RugError, TimeoutError, OSError) as exc:
-            self._attr_available = False
-            self.async_write_ha_state()
+            # A failed command says nothing about reachability: advertisements decide that.
             raise HomeAssistantError(f"MDA rug: {exc}") from exc
         self._attr_available = True
         self._attr_is_on = state.on
         return state
+
+    def _scene(self, effect: str, percent: int, speed: int | None = None) -> bytes:
+        return protocol.scene(
+            effect, self._client.speed if speed is None else speed, self._color_order, percent
+        )
 
     async def async_turn_on(self, **kwargs):
         value = kwargs.get(ATTR_BRIGHTNESS, self._attr_brightness or 255)
         if value == 0:
             await self.async_turn_off()
             return
-        percent = max(1, round(protocol.bounded(value, 1, 255) * 100 / 255))
+        percent = _percent(value)
         effect = kwargs.get(ATTR_EFFECT)
         hs = kwargs.get(ATTR_HS_COLOR)
         if effect is not None and effect not in self._attr_effect_list:
             raise HomeAssistantError("Unknown MDA rug effect")
-        if effect not in (None, "Solid") and hs is not None:
+        if effect in protocol.SCENES and hs is not None:
             raise HomeAssistantError("Choose either a scene or a solid color in one action")
         commands = [protocol.power(True)]
-        color_order = self._entry.options.get(CONF_COLOR_ORDER, DEFAULT_COLOR_ORDER)
         requested_effect = self._attr_effect
         requested_hs = self._attr_hs_color
         if effect in protocol.SCENES:
-            speed = self._entry.options.get(CONF_SPEED, DEFAULT_SPEED)
-            commands.append(protocol.scene(effect, speed, color_order, percent))
+            commands.append(self._scene(effect, percent))
             requested_effect, requested_hs = effect, None
-        elif hs is not None or effect == "Solid":
-            requested_hs = tuple(hs or self._attr_hs_color or (0, 0))
-            commands.append(protocol.color(*requested_hs, percent, color_order))
-            requested_effect = "Solid"
+        elif hs is not None or effect == EFFECT_OFF:
+            requested_hs = tuple(hs or self._attr_hs_color or WHITE)
+            commands.append(protocol.color(*requested_hs, percent, self._color_order))
+            requested_effect = EFFECT_OFF
         elif ATTR_BRIGHTNESS in kwargs:
-            if requested_effect == "Solid" and requested_hs is not None:
-                commands.append(protocol.color(*requested_hs, percent, color_order))
-            elif requested_effect in protocol.SCENES:
-                speed = self._entry.options.get(CONF_SPEED, DEFAULT_SPEED)
-                commands.append(protocol.scene(requested_effect, speed, color_order, percent))
+            if requested_effect in protocol.SCENES:
+                commands.append(self._scene(requested_effect, percent))
             else:
-                raise HomeAssistantError("Select a color or scene before changing brightness")
+                # Dimming can only resend a color, so an unknown selection starts from white.
+                requested_hs = requested_hs or WHITE
+                commands.append(protocol.color(*requested_hs, percent, self._color_order))
+                requested_effect = EFFECT_OFF
         state = await self._execute(commands)
         if len(commands) == 1 and requested_effect is not None:
-            expected = 110 if requested_effect == "Solid" else protocol.SCENES[requested_effect][0]
-            if state.mode != 0x25 or state.mode_id != expected:
+            if state.mode != 0x25 or state.mode_id != _mode_id(requested_effect):
                 requested_effect = requested_hs = None
                 self._attr_brightness = None
         self._attr_effect = requested_effect
@@ -194,4 +214,12 @@ class MdaRugLight(LightEntity, RestoreEntity):
 
     async def async_turn_off(self, **kwargs):
         await self._execute([protocol.power(False)])
+        self.async_write_ha_state()
+
+    async def async_apply_speed(self, speed: int) -> None:
+        """Resend a running scene at the new speed; otherwise the next scene picks it up."""
+        if not self._attr_is_on or self._attr_effect not in protocol.SCENES:
+            return
+        percent = _percent(self._attr_brightness or 255)
+        await self._execute([self._scene(self._attr_effect, percent, speed)])
         self.async_write_ha_state()

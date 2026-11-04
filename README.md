@@ -1,10 +1,10 @@
 # MDA Rug — Home Assistant Bluetooth integration
 
 A small local integration for the MDA Rugs LED rug tested on October 29, 2026.
-It creates one light entity and uses Home Assistant's existing Bluetooth integration.
-No cloud account, MQTT broker, emulator, or running phone app is required.
+It creates a light and an Effect speed setting, and uses Home Assistant's existing Bluetooth
+integration. No cloud account, MQTT broker, emulator, or running phone app is required.
 
-**Version 0.1.1: power and corrected solid colors are visually verified on the tested rug.
+**Version 0.2.0: power and corrected solid colors are visually verified on the tested rug.
 Solid-color dimming works by resending the color with its brightness.**
 Scene names are provisional palettes and do not claim to match the MDA app exactly.
 
@@ -26,7 +26,8 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 | --- | --- |
 | On/off | Visually confirmed and verified through physical rug status replies |
 | Game, Party, Northern Lights | Scene IDs and speed confirmed through status replies |
-| Effect speed | Encoded in the tested scene format; configurable from 1–100 |
+| The other 43 captured scenes | Encoders match the capture byte for byte; not yet checked on the rug |
+| Effect speed | A number entity from 1–100, shared by all scenes and applied at once to a running scene |
 | Solid HS color | Primary colors visually calibrated; BGR correction swaps red/blue in software |
 | Brightness | Solid colors: 10% to 70% change visually confirmed; standalone dimming command is ignored |
 | Scene brightness | Northern Lights at 10% looked dim and blue/green; 70% comparison and other scene dimming remain provisional |
@@ -35,10 +36,12 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 | HA discovery, light entity, restore, proxies | Requires end-to-end validation once an adapter is available |
 
 Scene names and palettes come from published Magic Hue/Zengge interoperability captures;
-they have not been matched against every scene name in MDA's app. This is a three-scene
-starter integration, not a complete reproduction of every MDA mode.
+they have not been matched against every scene name in MDA's app. All 46 scenes in that
+capture are included. The capture came from a different lamp in this controller family, so a
+scene may not look the same on a rug. Music sync is not supported: no source documents it.
 
-Color, brightness, and the last requested scene label are treated as assumed state.
+Power is read from the rug. Color, brightness, and the last requested scene label are the
+values last requested, because the rug does not report them.
 The light does not claim to read back its exact color or brightness. If an external controller
 changes the mode ID, the old requested values are cleared where detectable. Different
 palettes can share a scene ID, so an external palette change may not be distinguishable.
@@ -64,21 +67,21 @@ To remove it, delete the integration entry in Settings, remove its HACS download
 and restart Home Assistant.
 
 Automatic Bluetooth discovery is also supported. Options for the integration let you
-change scene speed and the software color correction (BGR by default, RGB if no correction is needed).
+change the software color correction (BGR by default, RGB if no correction is needed).
 
 The integration relies on HA's shared scanner and nearest connectable device lookup.
 It connects for an action, subscribes, verifies identity/state, sends commands, reads status,
 and disconnects. It does not create a second scanner or continuously poll the rug.
 
-The adapter/proxy must support writes of at least **43 bytes** for all included scenes
-(ATT MTU at least 46). The tested Windows connection negotiated MTU 512. A smaller MTU
+The adapter/proxy must support writes of at least **55 bytes** for all included scenes
+(ATT MTU at least 58). The tested Windows connection negotiated MTU 512. A smaller MTU
 produces a clear error before lighting commands are sent; unverified packet fragmentation
 is not attempted. This still needs validation with your eventual HA adapter.
 
 ## Use
 
-Use the normal light card for power, color, brightness, and effect selection.
-An automation can select a scene:
+Use the normal light card for power, color, brightness, and effect selection. The effect
+`off` means a solid color. An automation can select a scene:
 
 ```yaml
 action: light.turn_on
@@ -90,9 +93,9 @@ data:
 
 The tested controller displays raw red as blue and raw blue as red. BGR correction fixes
 that in outgoing solid colors and scene palettes; it does not change wiring settings.
-Brightness changes resend the selected color or palette. Select a color or scene in HA
-before dimming if HA does not know the current selection (for example after app control).
-Scene brightness changes may restart the animation.
+Brightness changes resend the selected color or palette. If HA does not know the current
+selection (for example after app control or a restart while off), dimming starts from white.
+Scene brightness and speed changes may restart the animation.
 
 ## Restricted command surface
 

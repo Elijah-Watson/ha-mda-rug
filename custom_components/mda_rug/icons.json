@@ -1,0 +1,14 @@
+{
+  "entity": {
+    "light": {
+      "rug": {
+        "default": "mdi:rug"
+      }
+    },
+    "number": {
+      "effect_speed": {
+        "default": "mdi:speedometer"
+      }
+    }
+  }
+}

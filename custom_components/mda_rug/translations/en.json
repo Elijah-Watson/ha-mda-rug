@@ -28,11 +28,17 @@
     "step": {
       "init": {
         "title": "Rug lighting options",
-        "description": "BGR corrects the red/blue swap observed on the tested rug. RGB sends colors unchanged. These options do not change controller hardware settings. Scene speed applies when a scene is selected.",
+        "description": "BGR corrects the red/blue swap observed on the tested rug. RGB sends colors unchanged. These options do not change controller hardware settings.",
         "data": {
-          "effect_speed": "Effect speed",
           "color_order": "Color correction (BGR swaps red and blue; RGB unchanged)"
         }
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "effect_speed": {
+        "name": "Effect speed"
       }
     }
   }
