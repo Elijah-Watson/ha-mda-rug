@@ -82,3 +82,20 @@ observed mode changes or when the software color correction changes.
 No further live calibration was performed after the owner stepped away. No
 firmware, reset, LED count, wiring, or persistent controller-setting writes are
 part of this integration.
+
+## Live validation — November 4, 2026
+
+Version 0.2.0 on HA 2026.10.4, through an ESPHome Bluetooth proxy on an ESP32-C3 (Apollo MSR-2),
+with a person watching the rug. This closes the open checks above.
+
+| Check | Result |
+| --- | --- |
+| Red, green, blue, white, orange, pale pink (saturation 40), teal | All correct |
+| Solid red at 100, 50, 25, 10, 5 and 1% | Each step visibly different |
+| All 46 scenes, including modes 1 and 2 and direction 2 | Status replies matched; each animated |
+| Scene writes of up to 55 bytes | Accepted through the proxy |
+| Effect speed 10, 100 and 50 on Northern Lights | Speed visibly changed |
+| Northern Lights at 10, 70 and 100% | Dimmed and recovered |
+
+Scene names and looks were not compared with the MDA app, and the status bytes were not
+checked as color or brightness readback.

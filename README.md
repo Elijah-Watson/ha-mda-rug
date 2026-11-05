@@ -25,20 +25,21 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 | Feature | Status |
 | --- | --- |
 | On/off | Visually confirmed and verified through physical rug status replies |
-| Game, Party, Northern Lights | Scene IDs and speed confirmed through status replies |
-| The other 43 captured scenes | Encoders match the capture byte for byte; not yet checked on the rug |
-| Effect speed | A number entity from 1–100, shared by all scenes and applied at once to a running scene |
-| Solid HS color | Primary colors visually calibrated; BGR correction swaps red/blue in software |
-| Brightness | Solid colors: 10% to 70% change visually confirmed; standalone dimming command is ignored |
-| Scene brightness | Northern Lights at 10% looked dim and blue/green; 70% comparison and other scene dimming remain provisional |
+| All 46 captured scenes | Accepted through status replies and watched on the rug: each animates; names and looks not compared with MDA's app |
+| Effect speed | A number entity from 1–100, shared by all scenes and applied at once to a running scene; slow and fast visually confirmed |
+| Solid HS color | Primaries, white, an intermediate hue and a partial saturation visually confirmed; BGR correction swaps red/blue in software |
+| Brightness | Solid red visually confirmed in steps from 100% down to 1%; standalone dimming command is ignored |
+| Scene brightness | Northern Lights at 10%, 70% and 100% visually confirmed; other scenes use the same scaling |
 | Power changes made with the app | Advertisement parser included; HA callback path not tested live |
 | HA installation and manual setup | HACS installation and config flow verified on HA 2026.10.4; entry retries while no adapter sees the rug |
-| HA discovery, light entity, restore, proxies | Requires end-to-end validation once an adapter is available |
+| Light entity through an ESPHome Bluetooth proxy | Verified end to end on HA 2026.10.4, including 55-byte scene writes |
+| HA discovery, restore | Requires end-to-end validation |
 
 Scene names and palettes come from published Magic Hue/Zengge interoperability captures;
 they have not been matched against every scene name in MDA's app. All 46 scenes in that
 capture are included. The capture came from a different lamp in this controller family, so a
-scene may not look the same on a rug. Music sync is not supported: no source documents it.
+scene may not look exactly as it does in MDA's app. Music sync is not supported: no source
+documents it.
 
 Power is read from the rug. Color, brightness, and the last requested scene label are the
 values last requested, because the rug does not report them.
@@ -76,7 +77,8 @@ and disconnects. It does not create a second scanner or continuously poll the ru
 The adapter/proxy must support writes of at least **55 bytes** for all included scenes
 (ATT MTU at least 58). The tested Windows connection negotiated MTU 512. A smaller MTU
 produces a clear error before lighting commands are sent; unverified packet fragmentation
-is not attempted. This still needs validation with your eventual HA adapter.
+is not attempted. An ESPHome Bluetooth proxy on an ESP32-C3 has been tested and handles all
+scenes; other adapters have not.
 
 ## Use
 
