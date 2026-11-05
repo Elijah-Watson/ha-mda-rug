@@ -23,6 +23,7 @@ class RugClient:
         self.name = name
         self.speed = speed
         self.on_speed_change: Callable[[int], Awaitable[None]] | None = None
+        self.on_speed_stored: Callable[[], None] | None = None
         self.state: protocol.State | None = None
         self._lock = asyncio.Lock()
         self._event = asyncio.Event()

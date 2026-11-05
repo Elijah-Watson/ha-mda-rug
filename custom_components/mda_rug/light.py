@@ -186,8 +186,10 @@ class MdaRugLight(LightEntity, RestoreEntity):
         commands = [protocol.power(True)]
         requested_effect = self._attr_effect
         requested_hs = self._attr_hs_color
+        scene_speed = None
         if effect in protocol.SCENES:
-            commands.append(self._scene(effect, percent))
+            scene_speed = protocol.default_speed(effect)
+            commands.append(self._scene(effect, percent, scene_speed))
             requested_effect, requested_hs = effect, None
         elif hs is not None or effect == EFFECT_OFF:
             requested_hs = tuple(hs or self._attr_hs_color or WHITE)
@@ -202,6 +204,10 @@ class MdaRugLight(LightEntity, RestoreEntity):
                 commands.append(protocol.color(*requested_hs, percent, self._color_order))
                 requested_effect = EFFECT_OFF
         state = await self._execute(commands)
+        if scene_speed is not None:
+            self._client.speed = scene_speed
+            if self._client.on_speed_stored is not None:
+                self._client.on_speed_stored()
         if len(commands) == 1 and requested_effect is not None:
             if state.mode != 0x25 or state.mode_id != _mode_id(requested_effect):
                 requested_effect = requested_hs = None
@@ -217,7 +223,7 @@ class MdaRugLight(LightEntity, RestoreEntity):
         self.async_write_ha_state()
 
     async def async_apply_speed(self, speed: int) -> None:
-        """Resend a running scene at the new speed; otherwise the next scene picks it up."""
+        """Resend a running scene at the new speed. The next scene starts at its own speed."""
         if not self._attr_is_on or self._attr_effect not in protocol.SCENES:
             return
         percent = _percent(self._attr_brightness or 255)

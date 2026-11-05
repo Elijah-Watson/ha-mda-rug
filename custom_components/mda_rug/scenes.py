@@ -1,9 +1,8 @@
-"""Scene table from the LEDnetWF IOTBT app capture (lednetwf_ble issue #83).
+"""Scene table captured from MDA's own app, version 1.0.3, on November 4, 2026.
 
-Each entry is scene ID, mode, direction, and packed hue/saturation/value triples.
-Scene IDs repeat across palettes, so a status reply cannot tell those scenes apart.
-The capture came from a different lamp in this controller family. Names are the
-source app's and may not match MDA's.
+Each entry is scene ID, mode, direction, default speed, and packed hue/saturation/value
+triples, in the order the app lists them: Life, Scenery, Holidays, Moods. Scene IDs repeat
+across palettes, so a status reply cannot tell those scenes apart.
 """
 
 SCENES = {
@@ -11,6 +10,7 @@ SCENES = {
         1,
         0,
         1,
+        80,
         (
             (0x58, 0xDE, 0x61),
             (0x3C, 0x64, 0x64),
@@ -22,6 +22,7 @@ SCENES = {
         3,
         0,
         1,
+        80,
         (
             (0x0C, 0x64, 0x64),
             (0x1E, 0x64, 0x64),
@@ -34,6 +35,7 @@ SCENES = {
         20,
         0,
         1,
+        65,
         (
             (0x50, 0x64, 0x64),
             (0x5D, 0x64, 0x64),
@@ -44,6 +46,7 @@ SCENES = {
         5,
         0,
         1,
+        80,
         (
             (0x85, 0x64, 0x64),
             (0x96, 0xE4, 0x50),
@@ -55,6 +58,7 @@ SCENES = {
         2,
         2,
         1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x0F, 0x64, 0x64),
@@ -69,6 +73,7 @@ SCENES = {
         9,
         0,
         1,
+        80,
         (
             (0x1C, 0xE4, 0x64),
             (0x9A, 0x63, 0x64),
@@ -80,6 +85,7 @@ SCENES = {
         2,
         0,
         1,
+        80,
         (
             (0x46, 0xE3, 0x64),
             (0x65, 0xE4, 0x64),
@@ -89,6 +95,7 @@ SCENES = {
         3,
         0,
         1,
+        80,
         (
             (0x5A, 0x37, 0x64),
             (0x00, 0x00, 0x64),
@@ -98,6 +105,7 @@ SCENES = {
         8,
         0,
         1,
+        40,
         (
             (0x00, 0x64, 0x64),
             (0x0F, 0xE4, 0x64),
@@ -108,6 +116,7 @@ SCENES = {
         6,
         0,
         1,
+        80,
         (
             (0x1C, 0x64, 0x64),
             (0x13, 0x64, 0x64),
@@ -118,6 +127,7 @@ SCENES = {
         3,
         0,
         1,
+        80,
         (
             (0x5A, 0xE4, 0x64),
             (0x67, 0x64, 0x64),
@@ -128,6 +138,7 @@ SCENES = {
         6,
         0,
         1,
+        80,
         (
             (0x5C, 0xE4, 0x64),
             (0x4C, 0xE4, 0x64),
@@ -137,6 +148,7 @@ SCENES = {
         12,
         1,
         1,
+        60,
         (
             (0x67, 0xE4, 0x64),
             (0x82, 0xE4, 0x64),
@@ -146,6 +158,7 @@ SCENES = {
         9,
         0,
         1,
+        80,
         (
             (0x3C, 0xE4, 0x64),
             (0x2D, 0x64, 0x64),
@@ -155,6 +168,7 @@ SCENES = {
         2,
         0,
         1,
+        80,
         (
             (0x70, 0xE4, 0x64),
             (0x5F, 0xE4, 0x64),
@@ -165,6 +179,7 @@ SCENES = {
         18,
         1,
         1,
+        80,
         (
             (0x22, 0x64, 0x64),
             (0x09, 0xE4, 0x64),
@@ -177,6 +192,7 @@ SCENES = {
         22,
         0,
         1,
+        80,
         (
             (0x64, 0x64, 0x64),
             (0x4F, 0x64, 0x64),
@@ -187,6 +203,7 @@ SCENES = {
         22,
         0,
         1,
+        80,
         (
             (0x10, 0xE2, 0x64),
             (0x1E, 0x64, 0x64),
@@ -197,6 +214,7 @@ SCENES = {
         20,
         0,
         2,
+        65,
         (
             (0x18, 0xE4, 0x64),
             (0x03, 0xE3, 0x64),
@@ -208,6 +226,7 @@ SCENES = {
         19,
         0,
         1,
+        80,
         (
             (0x1D, 0xE3, 0x64),
             (0x10, 0x5F, 0x64),
@@ -218,15 +237,17 @@ SCENES = {
         13,
         2,
         1,
+        60,
         (
             (0x1E, 0x64, 0x64),
             (0x00, 0x00, 0x64),
         ),
     ),
-    "Lightning And Thunder": (
+    "Lightning and Thunder": (
         11,
         0,
         1,
+        80,
         (
             (0x00, 0x00, 0x64),
             (0x64, 0x64, 0x64),
@@ -236,6 +257,7 @@ SCENES = {
         17,
         1,
         1,
+        80,
         (
             (0x1A, 0x64, 0x64),
             (0x00, 0x00, 0x64),
@@ -245,6 +267,7 @@ SCENES = {
         16,
         0,
         1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x1E, 0x64, 0x64),
@@ -254,56 +277,11 @@ SCENES = {
             (0x00, 0x00, 0x64),
         ),
     ),
-    "Christmas 1": (
-        10,
-        0,
-        1,
-        (
-            (0x68, 0x64, 0x64),
-            (0x5E, 0xE4, 0x64),
-        ),
-    ),
-    "Christmas 2": (
+    "Christmas I": (
         3,
         0,
         1,
-        (
-            (0x00, 0x64, 0x64),
-            (0x1E, 0x64, 0x64),
-            (0x9D, 0x64, 0x64),
-        ),
-    ),
-    "Halloween 1": (
-        7,
-        0,
-        1,
-        (
-            (0x07, 0x64, 0x64),
-            (0x07, 0x64, 0x64),
-            (0x20, 0xE4, 0x64),
-            (0x20, 0xE4, 0x64),
-            (0x43, 0x64, 0x64),
-            (0x43, 0x64, 0x64),
-            (0x65, 0xE4, 0x64),
-            (0x65, 0xE4, 0x64),
-        ),
-    ),
-    "Halloween 2": (
-        6,
-        0,
-        1,
-        (
-            (0x3C, 0xE4, 0x64),
-            (0x14, 0x64, 0x64),
-            (0x00, 0x64, 0x64),
-            (0x8E, 0x64, 0x64),
-            (0x6C, 0xE4, 0x64),
-        ),
-    ),
-    "Valentines Day": (
-        3,
-        0,
-        1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x19, 0xE4, 0x64),
@@ -312,10 +290,11 @@ SCENES = {
             (0x85, 0x64, 0x64),
         ),
     ),
-    "Thanksgiving": (
+    "Christmas II": (
         102,
         0,
         1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x00, 0x00, 0x64),
@@ -323,10 +302,11 @@ SCENES = {
             (0x00, 0x00, 0x64),
         ),
     ),
-    "Mothers Day": (
+    "Halloween I": (
         21,
         0,
         1,
+        80,
         (
             (0x59, 0xE4, 0x64),
             (0x43, 0x64, 0x64),
@@ -335,10 +315,11 @@ SCENES = {
             (0x79, 0xE4, 0x64),
         ),
     ),
-    "Forest Day": (
+    "Halloween II": (
         101,
         0,
         1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x0C, 0x64, 0x64),
@@ -346,19 +327,21 @@ SCENES = {
             (0x45, 0xE4, 0x64),
         ),
     ),
-    "Fathers Day": (
+    "Valentine's Day": (
         8,
         0,
         1,
+        40,
         (
             (0xAA, 0x64, 0x64),
             (0x91, 0xE4, 0x64),
         ),
     ),
-    "New Year": (
+    "Thanksgiving": (
         6,
         0,
         1,
+        80,
         (
             (0x1D, 0xE4, 0x64),
             (0x0D, 0xE4, 0x64),
@@ -366,30 +349,83 @@ SCENES = {
             (0x8B, 0xE4, 0x64),
         ),
     ),
-    "Childrens Day": (
+    "Mother's Day": (
         2,
         0,
         1,
+        80,
         (
             (0xA0, 0x64, 0x64),
             (0xA4, 0x15, 0x64),
             (0x88, 0xE4, 0x64),
         ),
     ),
-    "Easter": (
+    "Forest Day": (
         9,
         0,
         1,
+        80,
         (
             (0x52, 0xE4, 0x64),
             (0x39, 0xE4, 0x64),
             (0x28, 0x64, 0x64),
         ),
     ),
+    "Father's Day": (
+        10,
+        0,
+        1,
+        50,
+        (
+            (0x68, 0x64, 0x64),
+            (0x5E, 0xE4, 0x64),
+        ),
+    ),
+    "New Year": (
+        3,
+        0,
+        1,
+        80,
+        (
+            (0x00, 0x64, 0x64),
+            (0x1E, 0x64, 0x64),
+            (0x9D, 0x64, 0x64),
+        ),
+    ),
+    "Children's Day": (
+        7,
+        0,
+        1,
+        80,
+        (
+            (0x07, 0x64, 0x64),
+            (0x07, 0x64, 0x64),
+            (0x20, 0xE4, 0x64),
+            (0x20, 0xE4, 0x64),
+            (0x43, 0x64, 0x64),
+            (0x43, 0x64, 0x64),
+            (0x65, 0xE4, 0x64),
+            (0x65, 0xE4, 0x64),
+        ),
+    ),
+    "Easter": (
+        6,
+        0,
+        1,
+        80,
+        (
+            (0x3C, 0xE4, 0x64),
+            (0x14, 0x64, 0x64),
+            (0x00, 0x64, 0x64),
+            (0x8E, 0x64, 0x64),
+            (0x6C, 0xE4, 0x64),
+        ),
+    ),
     "Summer Idyll": (
         9,
         0,
         1,
+        80,
         (
             (0x44, 0x64, 0x64),
             (0x57, 0xE4, 0x50),
@@ -400,6 +436,7 @@ SCENES = {
         1,
         0,
         1,
+        80,
         (
             (0x90, 0xDF, 0x64),
             (0x9F, 0xDC, 0x64),
@@ -407,10 +444,11 @@ SCENES = {
             (0x63, 0x64, 0x64),
         ),
     ),
-    "Love And Dreams": (
+    "Love and Dreams": (
         15,
         0,
         1,
+        80,
         (
             (0xA2, 0xE4, 0x64),
             (0x00, 0x64, 0x64),
@@ -421,6 +459,7 @@ SCENES = {
         10,
         0,
         1,
+        50,
         (
             (0x2F, 0x64, 0x64),
             (0x1A, 0xE4, 0x64),
@@ -431,6 +470,7 @@ SCENES = {
         15,
         0,
         1,
+        80,
         (
             (0x0E, 0x64, 0x64),
             (0x22, 0x64, 0x64),
@@ -443,6 +483,7 @@ SCENES = {
         10,
         0,
         1,
+        50,
         (
             (0x1C, 0x64, 0x64),
             (0x0D, 0xE4, 0x64),
@@ -455,6 +496,7 @@ SCENES = {
         6,
         0,
         1,
+        80,
         (
             (0x23, 0x64, 0x64),
             (0x23, 0x64, 0x64),
@@ -470,6 +512,7 @@ SCENES = {
         18,
         0,
         1,
+        80,
         (
             (0x87, 0xE4, 0x64),
             (0x9A, 0xE4, 0x64),
@@ -481,6 +524,7 @@ SCENES = {
         14,
         0,
         1,
+        50,
         (
             (0x00, 0x64, 0x64),
             (0x73, 0xE4, 0x64),
@@ -490,6 +534,7 @@ SCENES = {
         4,
         1,
         1,
+        80,
         (
             (0x00, 0x64, 0x64),
             (0x73, 0xE4, 0x64),

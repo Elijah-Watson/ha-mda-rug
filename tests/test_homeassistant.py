@@ -20,7 +20,10 @@ def make_entry():
         title="Test rug",
         options={},
         runtime_data=SimpleNamespace(
-            state=protocol.State(False, 0x25, 110, 30), speed=50, on_speed_change=None
+            state=protocol.State(False, 0x25, 110, 30),
+            speed=50,
+            on_speed_change=None,
+            on_speed_stored=None,
         ),
     )
 
@@ -46,7 +49,7 @@ async def test_solid_dimming_resends_corrected_color(rug):
 async def test_scene_dimming_preserves_selected_palette(rug):
     await rug.async_turn_on(effect="Northern Lights", brightness=26)
     await rug.async_turn_on(brightness=179)
-    assert rug._execute.call_args.args[0][-1] == protocol.scene("Northern Lights", 50, "BGR", 70)
+    assert rug._execute.call_args.args[0][-1] == protocol.scene("Northern Lights", 80, "BGR", 70)
     assert rug.effect == "Northern Lights"
 
 
@@ -99,10 +102,31 @@ async def test_effect_off_returns_to_solid(rug):
     assert rug.effect == EFFECT_OFF
 
 
-async def test_scene_uses_the_shared_speed(rug):
+async def test_a_scene_starts_at_its_own_speed(rug):
     rug._client.speed = 35
-    await rug.async_turn_on(effect="Game", brightness=255)
-    assert rug._execute.call_args.args[0][-1] == protocol.scene("Game", 35, "BGR", 100)
+    stored = Mock()
+    rug._client.on_speed_stored = stored
+    await rug.async_turn_on(effect="Dreamland", brightness=255)
+    assert rug._execute.call_args.args[0][-1] == protocol.scene("Dreamland", 50, "BGR", 100)
+    assert rug._client.speed == 50
+    stored.assert_called_once_with()
+
+
+async def test_the_next_scene_drops_a_changed_speed(rug):
+    rug._attr_is_on = True
+    await rug.async_turn_on(effect="Game")
+    rug._client.speed = 15
+    await rug.async_turn_on(brightness=128)
+    assert rug._execute.call_args.args[0][-1] == protocol.scene("Game", 15, "BGR", 50)
+    await rug.async_turn_on(effect="Birthday")
+    assert rug._client.speed == 40
+
+
+async def test_a_refused_scene_keeps_the_current_speed(rug):
+    rug._execute.side_effect = HomeAssistantError("Refused")
+    with pytest.raises(HomeAssistantError):
+        await rug.async_turn_on(effect="Birthday")
+    assert rug._client.speed == 50
 
 
 async def test_scene_and_color_together_are_refused(rug):

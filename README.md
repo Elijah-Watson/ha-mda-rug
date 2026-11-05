@@ -4,9 +4,9 @@ A small local integration for the MDA Rugs LED rug tested on October 29, 2026.
 It creates a light and an Effect speed setting, and uses Home Assistant's existing Bluetooth
 integration. No cloud account, MQTT broker, emulator, or running phone app is required.
 
-**Version 0.2.0: power and corrected solid colors are visually verified on the tested rug.
+**Version 0.2.1: power and corrected solid colors are visually verified on the tested rug.
 Solid-color dimming works by resending the color with its brightness.**
-Scene names are provisional palettes and do not claim to match the MDA app exactly.
+All 46 scene names, packets and default speeds were captured from MDA's own app.
 
 ## Supported controller
 
@@ -25,8 +25,8 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 | Feature | Status |
 | --- | --- |
 | On/off | Visually confirmed and verified through physical rug status replies |
-| All 46 captured scenes | Accepted through status replies and watched on the rug: each animates; names and looks not compared with MDA's app |
-| Effect speed | A number entity from 1–100, shared by all scenes and applied at once to a running scene; slow and fast visually confirmed |
+| All 46 scenes | Names and packets captured from MDA's app; accepted through status replies and watched on the rug: each animates |
+| Effect speed | A number entity from 1–100. Choosing a scene moves it to that scene's own speed; changing it applies at once to the running scene; slow and fast visually confirmed |
 | Solid HS color | Primaries, white, an intermediate hue and a partial saturation visually confirmed; BGR correction swaps red/blue in software |
 | Brightness | Solid red visually confirmed in steps from 100% down to 1%; standalone dimming command is ignored |
 | Scene brightness | Northern Lights at 10%, 70% and 100% visually confirmed; other scenes use the same scaling |
@@ -35,11 +35,9 @@ The same hardware may appear in other brands; discovery asks you to confirm the 
 | Light entity through an ESPHome Bluetooth proxy | Verified end to end on HA 2026.10.4, including 55-byte scene writes |
 | HA discovery, restore | Requires end-to-end validation |
 
-Scene names and palettes come from published Magic Hue/Zengge interoperability captures;
-they have not been matched against every scene name in MDA's app. All 46 scenes in that
-capture are included. The capture came from a different lamp in this controller family, so a
-scene may not look exactly as it does in MDA's app. Music sync is not supported: no source
-documents it.
+Scene names, palettes and speeds match what MDA's app 1.0.3 sends, listed in the app's order:
+Life, Scenery, Holidays, Moods. The app's custom scenes are not included. Music sync is not
+supported: no source documents it.
 
 Power is read from the rug. Color, brightness, and the last requested scene label are the
 values last requested, because the rug does not report them.

@@ -49,9 +49,15 @@ def color(hue: float, saturation: float, brightness: int, color_order: str = "RG
     return checksum(bytes([0x3B, 0xA1, packed >> 8, packed & 255, value]) + bytes(7))
 
 
-def scene(name: str, speed: int = 50, color_order: str = "RGB", brightness: int = 100) -> bytes:
-    scene_id, mode, direction, palette = SCENES[name]
-    speed = bounded(speed, 1, 100)
+def default_speed(name: str) -> int:
+    return SCENES[name][3]
+
+
+def scene(
+    name: str, speed: int | None = None, color_order: str = "RGB", brightness: int = 100
+) -> bytes:
+    scene_id, mode, direction, own_speed, palette = SCENES[name]
+    speed = bounded(own_speed if speed is None else speed, 1, 100)
     brightness = bounded(brightness, 1, 100)
     data = bytes(
         [0xE1, 1, 0, 100, scene_id, mode, direction, 100, speed, 0, 0xA1, 0, 0, 0, len(palette)]

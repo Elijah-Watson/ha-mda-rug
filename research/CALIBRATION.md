@@ -11,9 +11,8 @@
 2. [Issue #83's original Effects.txt](https://github.com/user-attachments/files/29386009/Effects.txt)
    contains app write packets for 46 named scenes. The uncorrected Game, Party,
    and Northern Lights encoders match its full packets exactly at speed 80.
-   Regression tests preserve those three external fixtures. Scene names describe
-   the source app's palettes; exact MDA app naming and animation equivalence are
-   still unverified. The additional 43 scenes have not been enabled without rug tests.
+   Regression tests preserve those three external fixtures. Its names turned out
+   to be partly wrong; see the MDA app capture below.
 3. The upstream [basic command reference](https://github.com/8none1/lednetwf_ble/blob/61da7f5a74943075dcd4940c287bd2bab36d1636/protocol_docs/05_basic_commands.md)
    describes `3B A1` with packed `(hue << 7) | saturation`, brightness at byte 4,
    and checksum. It warns that later fields can mean RGB on one device and timing
@@ -97,5 +96,20 @@ with a person watching the rug. This closes the open checks above.
 | Effect speed 10, 100 and 50 on Northern Lights | Speed visibly changed |
 | Northern Lights at 10, 70 and 100% | Dimmed and recovered |
 
-Scene names and looks were not compared with the MDA app, and the status bytes were not
-checked as color or brightness readback.
+The status bytes were not checked as color or brightness readback.
+
+## MDA app capture — November 4 and 5, 2026
+
+All 46 scenes were selected in MDA's app, version 1.0.3, with each name read off the screen
+and each write taken from the app's `HBConnectionImpl: writer.bytes` log. `tests/scene_capture.txt`
+holds the result, in the app's order: Life 10, Scenery 14, Holidays 12, Moods 10.
+
+- Every packet is byte-identical to the Zengge capture in issue #83, including speed.
+- 34 names were right. The 12 Holidays names in that capture were rotated by six places:
+  MDA's Christmas II (ID 102, red, white, green, white) was labelled Thanksgiving.
+- Each scene has its own default speed: 40, 50, 60, 65 or 80. The app's slider follows it.
+- Through this integration, solid red showed red and Iceland Blue showed blue and cyan, with a
+  person watching. The Iceland Blue packet carried swapped hues (59, 34, 41), so the rug swaps
+  red and blue in scenes as it does in solid colors, and the BGR correction is right for both.
+- MDA's app sends scene palettes without that correction. How those look on the rug from the
+  app, and how the app sends solid colors, were not checked.

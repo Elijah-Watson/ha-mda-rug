@@ -1,4 +1,4 @@
-"""Scene speed as a device setting, applied at once to a running scene."""
+"""Speed of the current scene. Choosing a scene moves it to that scene's own speed."""
 
 from __future__ import annotations
 
@@ -41,6 +41,11 @@ class MdaRugEffectSpeed(RestoreNumber):
         if previous and previous.native_value is not None:
             if 1 <= previous.native_value <= 100:
                 self._client.speed = int(previous.native_value)
+        self._client.on_speed_stored = self.async_write_ha_state
+        self.async_on_remove(self._clear_speed_listener)
+
+    def _clear_speed_listener(self):
+        self._client.on_speed_stored = None
 
     async def async_set_native_value(self, value):
         speed = int(value)
